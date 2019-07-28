@@ -1,0 +1,21 @@
+{
+  "bot": {
+    "levels": {
+      "437061464990285824": 100,
+      "438855279363489812": 50,
+      "503653160955674636": 50,
+      "481953084726312977": 10
+    },
+    "plugins": [
+      "plugins.infract",
+      "plugins.basic"
+    ],
+    "commands_prefix": ".",
+    "commands_require_mention": false,
+    "plugin_config_dir": "configs",
+    "commands_level_getter": "utils.patch.get_correct_level",
+    "shared_config": {
+      "MUTE_ROLE": 439823181046611970
+    }
+  }
+}

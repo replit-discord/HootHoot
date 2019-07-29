@@ -1,0 +1,5 @@
+{
+  "avatar_timeout": 3600,
+  "avatar_notification": "You've been muted for having an inappropriate avatar. You'll be muted until you change it for 1 hour. If you do not change it by that time, you'll be indefinitely muted and will have to contact staff to get unmuted.",
+  "avatar_release": "Thank you for complying, you've been unmuted."
+}

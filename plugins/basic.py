@@ -28,3 +28,26 @@ class ModPlugin(Plugin):
     def unmute_user(self, event, target):
         self.unmute(target)
         event.msg.add_reaction("👍")
+
+    @Plugin.command("badavatar", "<target:member>", level=CommandLevels.MOD)
+    def block_avatar(self, event, target):
+        self.mute_user(event, target)
+        bad_avatar = target.user.avatar
+
+        dm = target.user.open_dm()
+        dm.send_message(self.config['avatar_notification'])
+
+        def changed_name(update_event):
+            if getattr(update_event.user, "avatar", bad_avatar) == bad_avatar:
+                return False
+            return True
+
+        async_update = self.wait_for_event("PresenceUpdate", changed_name, user__id=target.id)
+
+        try:
+            async_update.get(timeout=self.config["avatar_timeout"])
+        except TimeoutError:
+            return
+
+        self.unmute(target)
+        dm.send_message(self.config["avatar_release"])

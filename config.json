@@ -8,14 +8,16 @@
     },
     "plugins": [
       "plugins.infract",
-      "plugins.basic"
+      "plugins.basic",
+      "plugins.mail"
     ],
     "commands_prefix": ".",
     "commands_require_mention": false,
     "plugin_config_dir": "configs",
     "commands_level_getter": "utils.patch.get_correct_level",
     "shared_config": {
-      "MUTE_ROLE": 439823181046611970
+      "MUTE_ROLE": 439823181046611970,
+      "GUILD_ID": 437048931827056642
     }
   }
 }

@@ -43,5 +43,16 @@ def get_time(_, data):
     return total_seconds
 
 
+def get_channel_id(_, data):
+    if data.isdigit():
+        data = int(data)
+    elif data.startswith("<") and data.endswith(">"):
+        data = int(data.strip("<#>"))
+    else:
+        raise ValueError("Invalid channel id / mention")
+    return data
+
+
 TYPE_MAP['member'] = get_member
 TYPE_MAP['time'] = get_time
+TYPE_MAP['channel_id'] = get_channel_id

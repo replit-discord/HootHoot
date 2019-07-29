@@ -22,7 +22,7 @@ class Column:
         if self.unique and self.optional:
             raise ValueError("Unique keys can not be optional")
         elif self.unique:
-            text += "PRIMARY KEY"
+            text += " PRIMARY KEY"
         return text
 
     def __eq__(self, other: str):
@@ -69,9 +69,9 @@ class Base(metaclass=BaseMeta):
             values = ", ".join("?" for _ in fields)
             client.execute("INSERT INTO {} ({}) VALUES ({})".format(cls.table_name, ", ".join(fields), values),
                            *fields.values())
-    
+
     @classmethod
-    def find(cls, *querys):
+    def _create_query(cls, querys):
         if isinstance(querys[0], tuple):
             matched = {}
             for query in querys:
@@ -79,15 +79,27 @@ class Base(metaclass=BaseMeta):
                     if query[0] is col:
                         matched[name] = query[1]
         else:
-            primary = next(name for name, col in cls._fields if col.unique)
+            primary = next(name for name, col in cls._fields.items() if col.unique)
             matched = {primary: querys[0]}
 
-        sql = "SELECT * FROM {} WHERE ".format(cls.table_name) + " AND ".join("{} = ?".format(name) for name in matched)
+        return " AND ".join("{} = ?".format(name) for name in matched), matched.values()
+
+    
+    @classmethod
+    def find(cls, *querys):
+        query, values = cls._create_query(querys)
+        sql = "SELECT * FROM {} WHERE ".format(cls.table_name) + query
         with JesterClient() as client:
-            client.execute(sql, *matched.values())
+            client.execute(sql, *values)
             return [*map(cls, client.fetch_all())]
 
     @classmethod
     def find_one(cls, *query):
-        return cls.find(query)[0]
+        return cls.find(*query)[0]
 
+    @classmethod
+    def delete(cls, *querys):
+        query, values = cls._create_query(querys)
+        sql = "DELETE FROM {} WHERE ".format(cls.table_name) + query
+        with JesterClient() as client:
+            client.execute(sql, *values)

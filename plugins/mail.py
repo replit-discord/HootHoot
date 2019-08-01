@@ -1,9 +1,10 @@
 from time import time, sleep
 from weakref import WeakValueDictionary
 
-from disco.bot import Plugin, CommandLevels
-
 from models.mail import MailRoom
+
+from disco.bot import Plugin, CommandLevels
+from gevent.timeout import Timeout
 
 
 class MailPlugin(Plugin):
@@ -91,16 +92,15 @@ class MailPlugin(Plugin):
 
     def create_room(self, msg):
         self.preping.append(msg.author.id)
-        confirm = msg.reply(self.config['confirmation_message'])
-        sleep(.5)
-        confirm.add_reaction("✅")
-        sleep(.5)
-        confirm.add_reaction("❎")
+        confirm = msg.reply(self.config['confirmation_message']).chain(False).\
+            add_reaction("✅").\
+            add_reaction("❎")
+
         reaction_async = self.wait_for_event("MessageReactionAdd", message_id=confirm.id, user_id=msg.author.id)
 
         try:
             reaction = reaction_async.get(timeout=self.config["confirm_patience"]).emoji
-        except TimeoutError:
+        except Timeout:
             self.preping.remove(msg.author.id)
             return msg.reply(self.config["confirm_expired"])
 

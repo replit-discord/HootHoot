@@ -1,5 +1,7 @@
 from disco.bot import Plugin, CommandLevels
 
+from gevent.timeout import Timeout
+
 
 class ModPlugin(Plugin):
 
@@ -46,7 +48,7 @@ class ModPlugin(Plugin):
 
         try:
             async_update.get(timeout=self.config["avatar_timeout"])
-        except TimeoutError:
+        except Timeout:
             return
 
         self.unmute(target)

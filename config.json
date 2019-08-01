@@ -9,7 +9,8 @@
     "plugins": [
       "plugins.infract",
       "plugins.basic",
-      "plugins.mail"
+      "plugins.mail",
+      "plugins.logging"
     ],
     "commands_prefix": ".",
     "commands_require_mention": false,

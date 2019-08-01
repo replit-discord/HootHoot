@@ -1,0 +1,19 @@
+{
+  "logging_channel": 440221190875774976,
+  "max_message_cache": 100,
+  "max_channel_cache": 50,
+  "max_voice_cache": 75,
+  "enabled": {
+    "MessageDelete": true,
+    "MessageUpdate": true,
+    "ChannelUpdate": true,
+    "ChannelDelete": true,
+    "ChannelCreate": false,
+    "GuildBanAdd": true,
+    "GuildBanRemove": true,
+    "GuildMemberAdd": true,
+    "GuildMemberRemove": true,
+    "GuildMemberUpdate": true,
+    "VoiceStateUpdate": true
+  }
+}

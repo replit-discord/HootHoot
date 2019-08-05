@@ -1,13 +1,14 @@
-from time import time, sleep
+from time import time
 from weakref import WeakValueDictionary
 
 from models.mail import MailRoom
+from utils.base import HootPlugin
 
-from disco.bot import Plugin, CommandLevels
+from disco.bot import CommandLevels
 from gevent.timeout import Timeout
 
 
-class MailPlugin(Plugin):
+class MailPlugin(HootPlugin):
 
     def load(self, ctx):
         self.room_greenlets = WeakValueDictionary()
@@ -30,9 +31,10 @@ class MailPlugin(Plugin):
     def expire_room(self, room):
         room.delete(room.user)
         self.client.api.channels_messages_create(room.user, self.config['closing_message'])
+        self.log_action("Removed Mail", "Removed mail channel named <#{c}>", c=room.channel)
         self.client.api.channels_delete(room.channel)
 
-    @Plugin.command("close", "<channel:channel_id>", level=CommandLevels.MOD)
+    @HootPlugin.command("close", "<channel:channel_id>", level=CommandLevels.MOD)
     def close_room(self, event, channel):
         try:
             room = MailRoom.find_one(MailRoom.channel == channel)
@@ -41,7 +43,7 @@ class MailPlugin(Plugin):
         else:
             self.expire_room(room)
 
-    @Plugin.listen("MessageCreate")
+    @HootPlugin.listen("MessageCreate")
     def on_mod_message(self, event):
         if event.author.id == self.client.state.me.id:
             return
@@ -62,7 +64,7 @@ class MailPlugin(Plugin):
             self.client.api.channels_messages_create(room.channel, """__**Attachments:**__
             {}""".format("\n".join([f" - {a.url}" for a in event.attachments.values()])))
 
-    @Plugin.listen("MessageCreate")
+    @HootPlugin.listen("MessageCreate")
     def on_dm_message(self, event):
         if event.channel.type != 1 or event.author.id == self.client.state.me.id:  # Not in DM or self
             return
@@ -128,5 +130,7 @@ class MailPlugin(Plugin):
         room = MailRoom.find_one(msg.channel_id)
         self.room_greenlets[new_channel.id] = self.spawn_later(self.config["expiration"], self.expire_room, room)
         self.preping.remove(msg.author.id)
+        self.log_action("Created Mail", "Created a new mail room {c.mention} with {t.mention}",
+                        msg.author, c=new_channel)
 
     # TODO: Capture message edits

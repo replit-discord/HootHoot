@@ -2,22 +2,24 @@ from time import time
 from datetime import datetime
 
 from models.moderations import Infraction
+from utils.base import HootPlugin
 
-from disco.bot import CommandLevels, Plugin
+from disco.bot import CommandLevels
 from disco.types.message import MessageEmbed
 from disco.util.snowflake import to_datetime
 
 
-class InfractionPlugin(Plugin):
+class InfractionPlugin(HootPlugin):
 
-    @Plugin.command("history", "<member:member>", level=CommandLevels.MOD)
+    @HootPlugin.command("history", "<member:member>", level=CommandLevels.MOD)
     def target_history(self, event, member):
         embed = self.get_history(member, True)
         event.msg.reply(embed=embed)
 
-    @Plugin.command("selfhistory", level=CommandLevels.DEFAULT)
+    @HootPlugin.command("selfhistory", level=CommandLevels.DEFAULT)
     def self_history(self, event):
-        embed = self.get_history(event.member, False)
+        member = self.client.api.guilds_members_get(self.config['GUILD_ID'], event.author.id)  # Quick hack for DMs
+        embed = self.get_history(member, False)
         event.msg.reply(embed=embed)
 
     def get_history(self, member, show_mods: bool):
@@ -59,7 +61,7 @@ class InfractionPlugin(Plugin):
         embed.color = 0x6832E3
         return embed
 
-    @Plugin.command("strike", "<member:member> [reason:str...]", level=CommandLevels.MOD)
+    @HootPlugin.command("strike", "<member:member> [reason:str...]", level=CommandLevels.MOD)
     def strike_user(self, event, member, reason: str = None):
         if reason is not None:
             Infraction.create(
@@ -82,8 +84,12 @@ class InfractionPlugin(Plugin):
 
         if reason is not None:
             dm.send_message(self.config['msgs']['strike_manual'].format(reason=reason))
+            self.log_action("Strike", "{t.mention} was striked for '{r}' by {m.mention}",
+                            member, r=reason, m=event.author)
         else:
             dm.send_message(self.config['msgs']['strike_manual_no_reason'])
+            self.log_action("Strike", "{t.mention} was striked, no reason was provided, by {m.mention}",
+                            member, e=event.author)
 
         if len(Infraction.find(Infraction.user == member.id,
                                Infraction.type == "strike")) == self.config['strike_to_ban']:
@@ -91,7 +97,7 @@ class InfractionPlugin(Plugin):
         else:
             self.execute_action(member, self.config['auto_actions']['strike'])
 
-    @Plugin.command("warn", "<member:member> [reason:str...]", level=CommandLevels.MOD)
+    @HootPlugin.command("warn", "<member:member> [reason:str...]", level=CommandLevels.MOD)
     def warn_user(self, event, member, reason: str = None):
         if reason is not None:
             Infraction.create(
@@ -114,8 +120,12 @@ class InfractionPlugin(Plugin):
 
         if reason is not None:
             dm.send_message(self.config['msgs']['warn'].format(reason=reason))
+            self.log_action("Warn", "{t.mention} was warned for '{r}' by {m.mention}",
+                            member, r=reason, m=event.author)
         else:
             dm.send_message(self.config['msgs']['warn_no_reason'])
+            self.log_action("Warn", "{t.mention} was warned, no reason was provided, by {m.mention}",
+                            member, e=event.author)
 
         if not len(Infraction.find(Infraction.user == member.id,
                                    Infraction.type == 'warn')) % self.config['warns_to_strike']:

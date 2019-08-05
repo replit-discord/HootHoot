@@ -1,7 +1,8 @@
 from collections import defaultdict, deque
 from datetime import datetime
 
-from disco.bot import Plugin
+from utils.base import HootPlugin
+
 from disco.types.message import MessageEmbed
 from holster.emitter import Priority
 
@@ -44,14 +45,14 @@ def logging_wrapper(*event_names: str, **kwargs):
             self.client.api.channels_messages_create(self.config["logging_channel"], " ", embed=embed)
 
         for event in event_names:
-            Plugin.listen(event, priority=Priority.BEFORE, **kwargs)(wrapper)
+            HootPlugin.listen(event, priority=Priority.BEFORE, **kwargs)(wrapper)
 
         to_add.add(wrapper)
         return wrapper
     return function_wrapper
 
 
-class LoggingPlugin(Plugin):
+class LoggingPlugin(HootPlugin):
 
     def load(self, ctx):
         self.msg_cache = defaultdict(lambda: deque(maxlen=self.config['max_message_cache']))
@@ -67,8 +68,8 @@ class LoggingPlugin(Plugin):
     def get_voice(self, user_id: int):
         return next((v for v in self.voice_cache if v.user.id == user_id), None)
 
-    @Plugin.listen("MessageUpdate")
-    @Plugin.listen("MessageCreate")
+    @HootPlugin.listen("MessageUpdate")
+    @HootPlugin.listen("MessageCreate")
     def update_cache(self, event):
         old_event = self.get_msg(event.channel_id, event.id)
         if old_event:
@@ -78,15 +79,15 @@ class LoggingPlugin(Plugin):
                 self.channel_cache.append(event.channel)
         self.msg_cache[event.channel_id].append(event)
 
-    @Plugin.listen("ChannelCreate")
-    @Plugin.listen("ChannelUpdate")
+    @HootPlugin.listen("ChannelCreate")
+    @HootPlugin.listen("ChannelUpdate")
     def update_channel(self, event):
         old_channel = self.get_channel(event.id)
         if old_channel:
             self.channel_cache.remove(old_channel)
         self.channel_cache.append(event)
 
-    @Plugin.listen("VoiceStateUpdate")
+    @HootPlugin.listen("VoiceStateUpdate")
     def update_voice_channel(self, event):
         old_state = self.get_voice(event.user.id)
         if old_state is not None:

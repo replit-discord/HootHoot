@@ -11,7 +11,8 @@
       "plugins.basic",
       "plugins.mail",
       "plugins.logging",
-      "plugins.filter"
+      "plugins.filter",
+      "plugins.poll"
     ],
     "commands_prefix": ".",
     "commands_require_mention": false,

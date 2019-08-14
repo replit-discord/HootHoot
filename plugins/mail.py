@@ -31,8 +31,8 @@ class MailPlugin(HootPlugin):
     def expire_room(self, room):
         room.delete(room.user)
         self.client.api.channels_messages_create(room.user, self.config['closing_message'])
-        self.log_action("Removed Mail", "Removed mail channel named <#{c}>", c=room.channel)
         self.client.api.channels_delete(room.channel)
+        self.log_action("Removed Mail", "Removed mail channel named <#{c}>", c=room.channel)
 
     @HootPlugin.command("close", "<channel:channel_id>", level=CommandLevels.MOD)
     def close_room(self, event, channel):

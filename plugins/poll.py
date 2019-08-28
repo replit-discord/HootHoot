@@ -21,6 +21,10 @@ class PollPlugin(HootPlugin):
         else:
             self.poll_msg = None
 
+        self.sub_role = next(r for r in
+                             self.client.api.guilds_roles_list(self.config['GUILD_ID']) if
+                             r.id == self.config['subscribe_role'])
+
     def reset_channel(self):
         self.poll_channel.delete_messages([*self.poll_channel.messages])
 
@@ -54,9 +58,24 @@ class PollPlugin(HootPlugin):
         embed.color = 0x6832E3
         embed.timestamp = datetime.utcnow().isoformat()
         embed.description = "\n".join([question + "\n"] + [l + " **" + q + "**" for l, q in responses.items()])
-        poll_msg = self.poll_channel.send_message(" ", embed=embed)
+        self.sub_role.update(mentionable=True)
+        sleep(.5)
+        poll_msg = self.poll_channel.send_message(self.sub_role.mention, embed=embed)
+        self.sub_role.update(mentionable=False)
         self.poll_msg = poll_msg
         self.poll_msg.pin()
         for emoji in responses:
             sleep(.5)
             self.poll_msg.add_reaction(emoji)
+
+    @HootPlugin.command("subscribe")
+    def subscribe_member(self, event):
+        if self.sub_role.id not in event.member.roles:
+            event.member.add_role(self.sub_role)
+        event.msg.add_reaction("👍")
+
+    @HootPlugin.command("unsubscribe")
+    def unsubscribe_member(self, event):
+        if self.sub_role.id in event.member.roles:
+            event.member.remove_role(self.sub_role)
+        event.msg.add_reaction("👍")

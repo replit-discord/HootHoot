@@ -1,4 +1,5 @@
 {
   "poll_channel": 610930206747918336,
-  "question_timeout": 30
+  "question_timeout": 30,
+  "subscribe_role": 616299568799285278
 }

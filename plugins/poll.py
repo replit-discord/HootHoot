@@ -25,8 +25,6 @@ class PollPlugin(HootPlugin):
                              self.client.api.guilds_roles_list(self.config['GUILD_ID']) if
                              r.id == self.config['subscribe_role'])
 
-    def reset_channel(self):
-        self.poll_channel.delete_messages([*self.poll_channel.messages])
 
     def get_msg(self, event):
         masync = self.wait_for_event("MessageCreate", channel_id=event.msg.channel_id, author__id=event.msg.author.id)
@@ -38,6 +36,14 @@ class PollPlugin(HootPlugin):
 
     @HootPlugin.command("poll", "<question:str...>", level=CommandLevels.MOD)
     def create_poll(self, event, question: str):
+        """
+        ***The Poll Command***
+
+        This command will create a new poll and post it.
+
+        ***Required Values***
+        > __question__ **The poll question**
+        """
         responses = {}
         for letter in self.LETTERS:
             event.msg.reply("Response {}: Send 'exit' to post, 'cancel' to cancel the poll".format(letter))
@@ -51,7 +57,7 @@ class PollPlugin(HootPlugin):
             responses[letter] = msg.content
 
         if self.poll_msg:
-            self.reset_channel()
+            self.poll_msg.unpin()
 
         embed = MessageEmbed()
         embed.title = "New poll question!"
@@ -70,12 +76,22 @@ class PollPlugin(HootPlugin):
 
     @HootPlugin.command("subscribe")
     def subscribe_member(self, event):
+        """
+        ***The Subscribe Command***
+
+        This adds the subscriber role, so you can be notified when a new poll is posted.
+        """
         if self.sub_role.id not in event.member.roles:
             event.member.add_role(self.sub_role)
         event.msg.add_reaction("👍")
 
     @HootPlugin.command("unsubscribe")
     def unsubscribe_member(self, event):
+        """
+        ***The Unsubscribe Command***
+
+        This removes the subscriber role
+        """
         if self.sub_role.id in event.member.roles:
             event.member.remove_role(self.sub_role)
         event.msg.add_reaction("👍")

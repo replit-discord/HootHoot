@@ -52,9 +52,16 @@ class BaseMeta(type):
 
 class Base(metaclass=BaseMeta):
 
+    table_name: str
+    _fields: dict
+
     def __init__(self, args: tuple):
         for name, value in zip(self._fields, args):
             setattr(self, name, value)
+
+    def __iter__(self):
+        for field in self._fields:
+            yield getattr(self, field)
     
     @classmethod
     def create(cls, **fields):
@@ -84,6 +91,11 @@ class Base(metaclass=BaseMeta):
 
         return " AND ".join("{} = ?".format(name) for name in matched), matched.values()
 
+    @classmethod
+    def find_all(cls):
+        with JesterClient() as client:
+            client.execute("SELECT * FROM " + cls.table_name)
+            return [*map(cls, client.fetch_all())]
     
     @classmethod
     def find(cls, *querys):
@@ -103,3 +115,7 @@ class Base(metaclass=BaseMeta):
         sql = "DELETE FROM {} WHERE ".format(cls.table_name) + query
         with JesterClient() as client:
             client.execute(sql, *values)
+
+    def delete_self(self):
+        query = tuple(zip(self._fields.values(), self))
+        self.delete(*query)

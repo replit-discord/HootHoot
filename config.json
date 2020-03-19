@@ -11,8 +11,8 @@
       "plugins.basic",
       "plugins.mail",
       "plugins.logging",
-      "plugins.filter",
-      "plugins.poll"
+      "plugins.poll",
+      "plugins.help"
     ],
     "commands_prefix": ".",
     "commands_require_mention": false,
@@ -21,7 +21,8 @@
     "shared_config": {
       "MUTE_ROLE": 439823181046611970,
       "GUILD_ID": 437048931827056642,
-      "BOT_LOGGING_CHANNEL": 549745775899312138
+      "BOT_LOGGING_CHANNEL": 549745775899312138,
+      "mail_parent": 604857699439738934
     }
   }
 }

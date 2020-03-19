@@ -6,10 +6,10 @@
     "strike": {"mute": 86400}
   },
   "msgs": {
-    "warn": "You've been warned for '{reason}'. Don't worry, this a minor infraction, just don't do it again.",
-    "warn_no_reason": "You've been warned. Don't worry, this a minor infraction, just don't do it again.",
-    "strike_auto": "You've been auto-striked for receiving 3 warnings. 5 strikes is a ban, so think about what you do before you do it.",
-    "strike_manual_no_reason": "You've been striked. This is a major infraction, think about what you do before you do it.",
-    "strike_manual": "You've been striked for '{reason}'. This is a major infraction, think about what you do before you do it."
+    "warn": "You've been warned for '{reason}'. Don't worry, this a minor infraction, just don't do it again. You've been muted for {length} minutes.",
+    "warn_no_reason": "You've been warned. Don't worry, this a minor infraction, just don't do it again.  You've been muted for {length} minutes.",
+    "strike_auto": "You've been auto-striked for receiving 3 warnings. 5 strikes is a ban, so think about what you do before you do it. You've been muted for {length} minutes.",
+    "strike_manual_no_reason": "You've been striked. This is a major infraction, think about what you do before you do it. You've been muted for {length} minutes.",
+    "strike_manual": "You've been striked for '{reason}'. This is a major infraction, think about what you do before you do it. You've been muted for {length} minutes."
   }
 }

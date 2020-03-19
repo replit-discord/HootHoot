@@ -8,12 +8,28 @@ class ModPlugin(HootPlugin):
 
     @HootPlugin.command("kick", "<target:member>", level=CommandLevels.MOD)
     def kick_user(self, event, target):
+        """
+        ***The Kick Command***
+
+        This command will kick target member from the server
+
+        ***Required Values***
+        > __target__ **The user's full discord name, mention, or ID**
+        """
         target.kick()
         event.msg.add_reaction("👍")
         self.log_action("Kick", "Kicked {t} from the server. Moderator: {e.author.mention}", target, e=event)
 
     @HootPlugin.command("ban", "<target:member>", level=CommandLevels.MOD)
     def ban_user(self, event, target):
+        """
+        ***The Ban Command***
+
+        This command will ban target member from the server
+
+        ***Required Values***
+        > __target__ **The user's full discord name, mention, or ID**
+        """
         target.ban()
         event.msg.add_reaction("👍")
         self.log_action("Ban", "Banned {t} from the server. Moderator: {e.author.mention}", target, e=event)
@@ -24,6 +40,17 @@ class ModPlugin(HootPlugin):
 
     @HootPlugin.command("mute", "<target:member> [length:time...]", level=CommandLevels.MOD)
     def mute_user(self, event, target, length: list = None):
+        """
+        ***The Mute Command***
+
+        This command restrict the target's message permissions either forever, or a certain amount of time if specified.
+
+        ***Required Values***
+        > __target__ **The user's full discord name, mention, or ID**
+
+        **Optional Values**
+        > __length__ **The amount of time until unmute in discord format.
+        """
         target.add_role(self.config["MUTE_ROLE"])
         event.msg.add_reaction("👍")
         if length:
@@ -34,11 +61,27 @@ class ModPlugin(HootPlugin):
 
     @HootPlugin.command("unmute", "<target:member>", level=CommandLevels.MOD)
     def unmute_user(self, event, target):
+        """
+        ***The Unmute Command***
+
+        This command will great the ability to send messages to a muted user. Avoid using this on timed mutes.
+
+        ***Required Values***
+        > __target__ **The user's full discord name, mention, or ID**
+        """
         self.unmute(target)
         event.msg.add_reaction("👍")
 
     @HootPlugin.command("badavatar", "<target:member>", level=CommandLevels.MOD)
     def block_avatar(self, event, target):
+        """
+        ***The Ban Avatar Command***
+
+        This command will mute a user until they modify their avatar to something more appropriate. If they do not change after a specified amount of time, they'll need to contact a mod to be unmuted.
+
+        ***Required Values***
+        > __target__ **The user's full discord name, mention, or ID**
+        """
         self.mute_user(event, target)
         bad_avatar = target.user.avatar
 
@@ -59,3 +102,12 @@ class ModPlugin(HootPlugin):
 
         self.unmute(target)
         dm.send_message(self.config["avatar_release"])
+
+    @HootPlugin.command("jammer", "<target:member>", level=CommandLevels.TRUSTED)
+    def make_jammer(self, event, target):
+        """
+        Gives the jam role to a person
+        """
+        target.add_role("688936866132656184")
+        event.msg.add_reaction("👍")
+

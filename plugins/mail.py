@@ -36,6 +36,14 @@ class MailPlugin(HootPlugin):
 
     @HootPlugin.command("close", "<channel:channel_id>", level=CommandLevels.MOD)
     def close_room(self, event, channel):
+        """
+        ***The Close Command***
+
+        This command will close target mail channel
+
+        ***Required Values***
+        > __channel__ **The channel mention or ID**
+        """
         try:
             room = MailRoom.find_one(MailRoom.channel == channel)
         except IndexError:

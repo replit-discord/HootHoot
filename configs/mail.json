@@ -5,7 +5,6 @@
   "ending_conv": "Ending conversation",
   "bad_reaction": "Unknown reaction, ending conversation",
   "closing_message": "This conversation has been closed or expired. Sending a new message with start a new conversation.",
-  "mail_parent": 604857699439738934,
   "unknown_room": "Unable to find that mail.",
   "max_cache": 20,
   "confirm_expired": "No reaction provided, ending query."

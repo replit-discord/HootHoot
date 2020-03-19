@@ -1,7 +1,7 @@
 from collections import Counter
 import re
 
-from utils.base import HootPlugin
+from utils.base import HootPlugin, CommandLevels
 
 
 from disco.types import Message
@@ -22,6 +22,8 @@ class FilterPlugin(HootPlugin):
         return [s for s in content.split(" ") if s]
 
     def do_checks(self, msg: Message):
+        if msg.channel.parent_id == self.config["mail_parent"] or msg.channel.is_dm:
+            return True, None
         try:
             for attr in dir(self):
                 if attr.startswith("check"):
@@ -50,4 +52,5 @@ class FilterPlugin(HootPlugin):
             event.delete()
             r = reason.format(mention=event.author.mention)
             event.reply(r)
-            self.log_action("Blocked Message", "({r}): {c}", event.member, r=r, c=event.content)
+            self.log_action("Blocked Message", "({n} {r}): {c}", event.member, r=r,
+                            c=event.content, n=event.channel.m)

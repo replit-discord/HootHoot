@@ -1,8 +1,9 @@
 from time import time
 from datetime import datetime
 
-from models.moderations import Infraction
+from models.moderations import Infraction, Note
 from utils.base import HootPlugin
+from utils.paginator import PaginatorEmbed
 
 from disco.bot import CommandLevels
 from disco.types.message import MessageEmbed
@@ -193,7 +194,7 @@ class InfractionPlugin(HootPlugin):
         """
         ***The Repeal Command***
 
-        This command will remove an infraction from a user, either a warn or a strike. Keep in mind, infractions will expirenaturallyy, so only remove if it was a mistake.
+        This command will remove an infraction from a user, either a warn or a strike. Keep in mind, infractions will expire naturally so only remove if it was a mistake.
 
         ***Required Values***
         > __member__ **The user's full discord name, mention, or ID**
@@ -207,6 +208,42 @@ class InfractionPlugin(HootPlugin):
                 break
         else:
             event.msg.reply("ICIN does not exist for that user, sorry.")
+
+    @HootPlugin.command("note", "<member:member> [note:str...]", level=CommandLevels.MOD)
+    def append_note(self, event, member, note: str = None):
+        """
+        ***The Note Command***
+
+        This command will let a moderator observe notes on a member, or add a note to a member if provided
+
+        ***Required Values***
+        > __member__ **The user's full discord name, mention, or ID**
+
+        ***Optional Values***
+
+        > __note__ **A note to record to that member, if provided**
+        """
+        if isinstance(note, str):
+            Note.create(
+                user=member.id,
+                content=note,
+                moderator=event.author.id,
+                date=int(time())
+            )
+            event.msg.add_reaction("👍")
+        else:
+            notes = Note.find(Note.user == member.id)
+            note_list = [""]
+            for note in notes:
+                if len("\n\n" + note.content + note_list[-1]) > 2048:
+                    note_list.append(note.content)
+                else:
+                    note_list[-1] += ("\n\n" if note_list[-1] else "") + note.content
+
+            if not notes:
+                note_list[0] = "No notes exist for this user"
+
+            PaginatorEmbed(event, note_list, title="Notes for {}".format(member.name), color=0x6832E3)
 
     def unmute(self, member):
         member.remove_role(self.config["MUTE_ROLE"])

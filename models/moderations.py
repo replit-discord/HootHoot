@@ -7,3 +7,10 @@ class Infraction(Base):
     reason = Column("TEXT", optional=True)
     moderator = Column("INTEGER")
     date = Column("INTEGER")
+
+
+class Note(Base):
+    user = Column("INTEGER")
+    content = Column("TEXT")
+    moderator = Column("INTEGER")
+    date = Column("INTEGER")

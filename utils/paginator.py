@@ -46,4 +46,4 @@ class PaginatorEmbed:
 
             self.update()
             self.msg.edit(embed=self.embed)
-            reaction.delete()
+            event.delete()

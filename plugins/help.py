@@ -7,7 +7,7 @@ from disco.util.sanitize import S
 class HelpPlugin(HootPlugin):
 
     @HootPlugin.command("help", "[name:str]")
-    def help_command(self, event, name: str = None):
+    def help_command(self, event, name: str = None):  # TODO: Fix issue with commands with same name different group
         """
         ***The Help Command***
 

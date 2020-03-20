@@ -40,7 +40,8 @@ class HootPlugin(Plugin):
 
     def log_action(self, action: str, content: str, target=None, **kwargs):
         embed = MessageEmbed()
-        embed.title = action + ("  | " + str(target.user)) if target is not None else ""
+        embed.title = action + ("  | " + str(target.user if hasattr(target, "user") else target)) \
+            if target is not None else ""
         embed.color = 0x6832E3
         if target is not None:
             embed.description = content.format(t=target.user, **kwargs)

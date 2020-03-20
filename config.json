@@ -12,7 +12,8 @@
       "plugins.mail",
       "plugins.logging",
       "plugins.poll",
-      "plugins.help"
+      "plugins.help",
+      "plugins.admin"
     ],
     "commands_prefix": ".",
     "commands_require_mention": false,

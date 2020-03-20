@@ -5,6 +5,7 @@ from models.mail import MailRoom
 from utils.base import HootPlugin
 
 from disco.bot import CommandLevels
+from disco.util.sanitize import S
 from gevent.timeout import Timeout
 
 
@@ -95,7 +96,7 @@ class MailPlugin(HootPlugin):
             if room.channel in self.room_greenlets:  # I shouldn't need to do this, but it doesn't hurt...
                 self.room_greenlets[room.channel].kill()
             self.room_greenlets[room.channel] = self.spawn_later(self.config['expiration'], self.expire_room, room)
-            self.client.api.channels_messages_create(room.channel, event.content or "<No message>")
+            self.client.api.channels_messages_create(room.channel, S(event.content) or "<No message>")
             if event.attachments:
                 self.client.api.channels_messages_create(room.channel, """__**Attachments:**__
                 {}""".format("\n".join([f" - {a.url}" for a in event.attachments.values()])))

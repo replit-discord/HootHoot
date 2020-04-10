@@ -1,3 +1,6 @@
+from time import time
+
+from models.mutes import Mute
 from utils.base import HootPlugin
 
 from disco.bot import CommandLevels
@@ -34,10 +37,6 @@ class ModPlugin(HootPlugin):
         event.msg.add_reaction("👍")
         self.log_action("Ban", "Banned {t} from the server. Moderator: {e.author.mention}", target, e=event)
 
-    def unmute(self, member):
-        member.remove_role(self.config["MUTE_ROLE"])
-        self.log_action("Unmute", "Unmuted {t.mention}", member.user)
-
     @HootPlugin.command("mute", "<target:member> [length:time...]", level=CommandLevels.MOD)
     def mute_user(self, event, target, length: list = None):
         """
@@ -58,6 +57,9 @@ class ModPlugin(HootPlugin):
             self.spawn_later(seconds, self.unmute, target)
             self.log_action("Muted", "Muted {t.mention} for {s} seconds. Moderator: {e.author.mention}", target,
                             s=seconds, e=event)
+            Mute.create(target=target.id, end_time=int(time() + seconds))
+        else:
+            Mute.create(target=target.id, end_time=time() * 2)  # This should ensure they never get unmuted, in theory?
 
     @HootPlugin.command("unmute", "<target:member>", level=CommandLevels.MOD)
     def unmute_user(self, event, target):
@@ -69,7 +71,7 @@ class ModPlugin(HootPlugin):
         ***Required Values***
         > __target__ **The user's full discord name, mention, or ID**
         """
-        self.unmute(target)
+        self.unmute(target, force=True)
         event.msg.add_reaction("👍")
 
     @HootPlugin.command("badavatar", "<target:member>", level=CommandLevels.MOD)
@@ -100,7 +102,7 @@ class ModPlugin(HootPlugin):
         except Timeout:
             return
 
-        self.unmute(target)
+        self.unmute(target, force=True)
         dm.send_message(self.config["avatar_release"])
 
     @HootPlugin.command("jammer", "<target:member>", level=CommandLevels.TRUSTED)
@@ -110,4 +112,8 @@ class ModPlugin(HootPlugin):
         """
         target.add_role("688936866132656184")
         event.msg.add_reaction("👍")
+
+    @HootPlugin.command("echo", "<channel:channel_id> <message:str...>", level=CommandLevels.MOD)
+    def echo(self, event, channel: int, message: str):
+        self.client.api.channels_messages_create(channel, message)
 

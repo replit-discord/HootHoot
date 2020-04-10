@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from models.mutes import Mute
 from utils.base import HootPlugin
 from utils.paginator import PaginatorEmbed
 
@@ -84,8 +85,12 @@ class AdminPlugin(HootPlugin):
     def display_stats(self, event):
         ping = (datetime.now() - event.msg.timestamp).microseconds // 1000
         uptime = str(datetime.now() - self.start_time).split(":")
+        if ',' in uptime[0]:
+            days, hours = uptime[0].split(',')
+        else:
+            days, hours = 0, int(uptime[0])
         uptime = "{} days, {} hours, {} minutes and {} seconds".format(
-            *divmod(int(uptime[0]), 24),
+            days, hours,
             int(uptime[1]),
             int(float(uptime[2]))
         )
@@ -127,5 +132,17 @@ class AdminPlugin(HootPlugin):
                 final_description[-1] += part + "\n"
 
         PaginatorEmbed(event, final_description, title="HootBoot's Dashboard", color=0x6832E3)
+
+    @HootPlugin.command("mutes", level=CommandLevels.MOD)
+    def show_mutes(self, event):
+        mutes = Mute.find_all()
+        mute_table = MessageTable()
+        mute_table.set_header("Member", "Unmute")
+        for mute in mutes:
+            mute_table.add(
+                "<@{}>".format(mute.target),
+                datetime.fromtimestamp(mute.end_time).strftime("%b %d, %I:%M %p")
+            )
+        PaginatorEmbed(event, [mute_table.compile()], title="Ongoing Mutes", color=0x6832E3)
 
 

@@ -1,9 +1,11 @@
+from datetime import datetime, timedelta
 from time import time
 from weakref import WeakValueDictionary
 
 from models.mail import MailRoom
 from utils.base import HootPlugin
 
+from disco.api.http import APIException
 from disco.bot import CommandLevels
 from disco.util.sanitize import S
 from gevent.timeout import Timeout
@@ -29,8 +31,25 @@ class MailPlugin(HootPlugin):
             return False, None
         return True, room
 
-    def expire_room(self, room):
-        room.delete(room.user)
+    @HootPlugin.listen("Ready")
+    def setup_channels(self, event):
+        rooms = MailRoom.find_all()
+        for room in rooms:
+            try:
+                channel = self.client.api.channels_get(room.channel)
+                delta = channel.get_message(channel.last_message_id).timestamp \
+                        - (datetime.now() + timedelta(seconds=self.config["expiration"]))
+            except APIException:
+                room.delete_self()
+                continue
+
+            if delta.days < 0:
+                self.expire_room(room)
+            else:
+                self.room_greenlets[room.channel] = self.spawn_later(delta.seconds, self.expire_room, room)
+
+    def expire_room(self, room: MailRoom):
+        room.delete_self()
         self.client.api.channels_messages_create(room.user, self.config['closing_message'])
         self.client.api.channels_delete(room.channel)
         self.log_action("Removed Mail", "Removed mail channel named <#{c}>", c=room.channel)
@@ -50,6 +69,7 @@ class MailPlugin(HootPlugin):
         except IndexError:
             event.msg.reply(self.config["unknown_room"])
         else:
+            self.room_greenlets[room.channel].kill()
             self.expire_room(room)
 
     @HootPlugin.listen("MessageCreate")

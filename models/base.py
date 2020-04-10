@@ -117,5 +117,11 @@ class Base(metaclass=BaseMeta):
             client.execute(sql, *values)
 
     def delete_self(self):
-        query = tuple(zip(self._fields.values(), self))
+        query = list(zip(self._fields.values(), self))
+        to_remove = []
+        for i, q in enumerate(query):
+            if q[1] is None:
+                to_remove.append(i)
+        for i in to_remove:
+            query.pop(i)
         self.delete(*query)

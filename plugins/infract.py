@@ -2,6 +2,7 @@ from time import time
 from datetime import datetime
 
 from models.moderations import Infraction, Note
+from models.mutes import Mute
 from utils.base import HootPlugin
 from utils.paginator import PaginatorEmbed
 
@@ -127,11 +128,16 @@ class InfractionPlugin(HootPlugin):
         dm = member.user.open_dm()
 
         if reason is not None:
-            dm.send_message(self.config['msgs']['strike_manual'].format(reason=reason))
+            dm.send_message(self.config['msgs']['strike_manual'].format(
+                reason=reason,
+                length=self.config['auto_actions']['strike']['mute'] // 60)
+            )
             self.log_action("Strike", "{t.mention} was striked for '{r}' by {m.mention}",
                             member, r=reason, m=event.author)
         else:
-            dm.send_message(self.config['msgs']['strike_manual_no_reason'])
+            dm.send_message(self.config['msgs']['strike_manual_no_reason'].format(
+                length=self.config['auto_actions']['strike']['mute'] // 60)
+            )
             self.log_action("Strike", "{t.mention} was striked, no reason was provided, by {m.mention}",
                             member, e=event.author)
 
@@ -245,10 +251,34 @@ class InfractionPlugin(HootPlugin):
 
             PaginatorEmbed(event, note_list, title="Notes for {}".format(member.name), color=0x6832E3)
 
-    def unmute(self, member):
-        member.remove_role(self.config["MUTE_ROLE"])
+    @HootPlugin.listen("Ready")
+    def schedule_unmutes(self, _):
+        mutes = Mute.find_all()
+        unmutes = {}
+        for mute in mutes:
+            if time() >= mute.end_time:
+                mute.delete_self()
+                if mute.target not in unmutes:
+                    unmutes[mute.target] = True,
+            else:
+                unmutes[mute.target] = False, int(mute.end_time - time())
+
+        def remove_mute(user: int):
+            self.client.api.guilds_members_roles_remove(
+                self.config['GUILD_ID'],
+                user,
+                self.config["MUTE_ROLE"]
+            )
+            return Mute.delete(Mute.target == user)
+
+        for target, doit in unmutes.items():
+            if doit[0]:
+                self.client.api.guilds_members_roles_remove(self.config['GUILD_ID'], target, self.config["MUTE_ROLE"])
+            else:
+                self.spawn_later(doit[1], remove_mute, target)
 
     def execute_action(self, member, action):
         if "mute" in action:
             member.add_role(self.config["MUTE_ROLE"])
             self.spawn_later(action['mute'], self.unmute, member)
+            Mute.create(target=member.id, end_time=int(time() + action['mute']))

@@ -5,6 +5,7 @@ from models.mutes import Mute
 
 from disco.bot.plugin import Plugin, CommandError
 from disco.bot import CommandLevels
+from disco.api.http import APIException
 from disco.types.message import MessageEmbed
 import gevent
 
@@ -53,6 +54,12 @@ class HootPlugin(Plugin):
             embed.description = content.format(**kwargs)
         embed.timestamp = datetime.utcnow().isoformat()
         self.client.api.channels_messages_create(self.config["BOT_LOGGING_CHANNEL"], " ", embed=embed)
+
+    def dm(self, channel, *args, **kwargs):
+        try:
+            channel.send_message(*args, **kwargs)
+        except APIException:
+            pass
 
     def unmute(self, member, force=False):
         unmute = True

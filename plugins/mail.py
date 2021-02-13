@@ -37,8 +37,7 @@ class MailPlugin(HootPlugin):
         for room in rooms:
             try:
                 channel = self.client.api.channels_get(room.channel)
-                delta = channel.get_message(channel.last_message_id).timestamp \
-                        - (datetime.now() + timedelta(seconds=self.config["expiration"]))
+                delta = (channel.get_message(channel.last_message_id).timestamp + timedelta(seconds=self.config["expiration"]) - datetime.now())
             except APIException:
                 room.delete_self()
                 continue

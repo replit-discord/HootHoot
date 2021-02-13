@@ -42,9 +42,9 @@ class InfractionPlugin(HootPlugin):
         This command can be used by anyone, and gets their own infraction history.
         """
         member = self.client.api.guilds_members_get(self.config['GUILD_ID'], event.author.id)  # Quick hack for DMs
-        dm = event.author.open_dm()
+        dm = lambda *x, **y: self.dm(member.user.open_dm(), *x, **y)
         for embed in self.get_history(member, False):
-            dm.send_message("", embed=embed)
+            dm("", embed=embed)
 
     def get_history(self, member, show_mods: bool):
         infractions = Infraction.find(Infraction.user == member.id)
@@ -125,17 +125,17 @@ class InfractionPlugin(HootPlugin):
             )
 
         event.msg.add_reaction("👍")
-        dm = member.user.open_dm()
+        dm = lambda *x: self.dm(member.user.open_dm(), *x)
 
         if reason is not None:
-            dm.send_message(self.config['msgs']['strike_manual'].format(
+            dm(self.config['msgs']['strike_manual'].format(
                 reason=reason,
                 length=self.config['auto_actions']['strike']['mute'] // 60)
             )
             self.log_action("Strike", "{t.mention} was striked for '{r}' by {m.mention}",
                             member, r=reason, m=event.author)
         else:
-            dm.send_message(self.config['msgs']['strike_manual_no_reason'].format(
+            dm(self.config['msgs']['strike_manual_no_reason'].format(
                 length=self.config['auto_actions']['strike']['mute'] // 60)
             )
             self.log_action("Strike", "{t.mention} was striked, no reason was provided, by {m.mention}",
@@ -177,20 +177,20 @@ class InfractionPlugin(HootPlugin):
             )
 
         event.msg.add_reaction("👍")
-        dm = member.user.open_dm()
+        dm = lambda *x: self.dm(member.user.open_dm(), *x)
 
         if reason is not None:
-            dm.send_message(self.config['msgs']['warn'].format(reason=reason, length=self.config['auto_actions']['warn']['mute'] // 60))
+            dm(self.config['msgs']['warn'].format(reason=reason, length=self.config['auto_actions']['warn']['mute'] // 60))
             self.log_action("Warn", "{t.mention} was warned for '{r}' by {m.mention}",
                             member, r=reason, m=event.author)
         else:
-            dm.send_message(self.config['msgs']['warn_no_reason'].format(length=self.config['auto_actions']['warn']['mute'] // 60))
+            dm(self.config['msgs']['warn_no_reason'].format(length=self.config['auto_actions']['warn']['mute'] // 60))
             self.log_action("Warn", "{t.mention} was warned, no reason was provided, by {m.mention}",
-                            member, e=event.author)
+                            member, m=event.author)
 
         if not len(Infraction.find(Infraction.user == member.id,
                                    Infraction.type == 'warn')) % self.config['warns_to_strike']:
-            dm.send_message(self.config['msgs']['strike_auto'].format(length=self.config['auto_actions']['strike']['mute'] // 60))
+            dm(self.config['msgs']['strike_auto'].format(length=self.config['auto_actions']['strike']['mute'] // 60))
             self.execute_action(member, self.config['auto_actions']['strike'])
         else:
             self.execute_action(member, self.config['auto_actions']['warn'])
